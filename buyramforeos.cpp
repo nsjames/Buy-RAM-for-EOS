@@ -2,26 +2,25 @@
 #include <eosio/asset.hpp>
 using namespace eosio;
 
+CONTRACT system : public contract {
+public:
+    ACTION buyram(const name from, const name to, const asset quantity) {}
+    using buyram_action = eosio::action_wrapper<"buyram"_n, &system::buyram>;
+};
+
+
 CONTRACT buyramforeos : public contract {
 public:
     using contract::contract;
 
-    ACTION none(){}
-    
     [[eosio::on_notify("eosio.token::transfer")]]
-    void handle_notify(name from, name to, asset quantity, std::string memo) {
+    void handle_notify(const name from, const name to, const asset quantity, const std::string memo) {
         if (to != get_self()) return;
-        if (from == get_self()) return;
-        if (quantity.symbol != symbol("EOS", 4)) check(false, "this contract only accepts EOS");
 
         name to_account = name(memo);
-        if(!is_account(to_account)) to_account = from;
-        
-        action(
-            permission_level{get_self(), "active"_n},
-            "eosio"_n,
-            "buyram"_n,
-            std::make_tuple(get_self(), to_account, quantity)
-        ).send();
+        if (!is_account(to_account)) to_account = from;
+
+        system::buyram_action buyram( "eosio", { get_self(), "active"_n });
+        buyram.send(get_self(), to_account, quantity);
     }
 };
