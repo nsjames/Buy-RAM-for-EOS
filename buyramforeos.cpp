@@ -15,7 +15,7 @@ public:
         if (quantity.symbol != symbol("EOS", 4)) check(false, "this contract only accepts EOS");
 
         name to_account = name(memo);
-        if(!is_account(to_account)) check(false, "you must specify a recipient for the RAM");
+        if(!is_account(to_account)) to_account = from;
         
         action(
             permission_level{get_self(), "active"_n},
